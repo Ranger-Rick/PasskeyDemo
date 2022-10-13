@@ -1,0 +1,6 @@
+#Top Level
+.idea/
+PasskeyDemo/appsettings.Development.json
+PasskeyDemo/appsettings.json
+
+#Angular App
