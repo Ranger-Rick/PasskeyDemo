@@ -7,6 +7,10 @@ const PROXY_CONFIG = [
   {
     context: [
       "/weatherforecast",
+      "/Authentication/UsernameAvailable",
+      "/Authentication/GetCredentialOptions",
+      "/Authentication/MakeCredential",
+      "/Authentication/GetAttestationOptions",
    ],
     target: target,
     secure: false,

@@ -2,5 +2,7 @@
 .idea/
 PasskeyDemo/appsettings.Development.json
 PasskeyDemo/appsettings.json
+PasskeyDemo/TempDatabase.txt
 
 #Angular App
+PasskeyDemo/ClientApp/.angular/cache

@@ -1,0 +1,34 @@
+<div id="mainContent">
+  <div id="smallAccent" class="accent"></div>
+  <div id="mediumAccent" class="accent"></div>
+  <div id="largeAccent" class="accent"></div>
+
+  <div class="row">
+    <div class="col-2"></div>
+    <div id="title" class="col-8">
+      Passkey Demo
+    </div>
+    <div class="col-2"></div>
+  </div>
+
+  <div class="row">
+    <div class="col-2"></div>
+    <div id="registerGlassCard" class="col-8 glass grow">
+      <div class="row instructionLabel">
+        Please create a username:
+      </div>
+      <div class="row">
+        <input type="text" placeholder="Username" [(ngModel)]="username"/>
+      </div>
+      <div class="row justify-content-center">
+        <div
+          id="registerButton"
+          class="customButton"
+          (click)="Register()">
+          Register
+        </div>
+      </div>
+    </div>
+    <div class="col-2"></div>
+  </div>
+</div>

@@ -12,6 +12,7 @@ public class Program
         // Add services to the container.
 
         builder.Services.AddControllersWithViews();
+        builder.Services.AddControllers();
         
         ConfigureFido2(builder);
         AddCors(builder);
@@ -30,13 +31,17 @@ public class Program
         app.UseStaticFiles();
         app.UseRouting();
 
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+        });
+
 
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller}/{action=Index}/{id?}");
 
         app.MapFallbackToFile("index.html");
-        ;
 
         app.Run();
 

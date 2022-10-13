@@ -1,3 +1,5 @@
+using Fido2NetLib.Development;
+
 namespace PasskeyDemo.Models;
 
 public class User
@@ -6,6 +8,6 @@ public class User
     public string Username { get; init; }
     public string DisplayName { get; init; }
     public string Color { get; init; }
-    
-    public byte[] Attestation { get; init; }
+
+    public StoredCredential Credential { get; init; }
 }

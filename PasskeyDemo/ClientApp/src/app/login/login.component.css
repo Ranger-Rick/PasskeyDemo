@@ -1,0 +1,19 @@
+#title {
+  font-size: 4em;
+  color: white;
+  text-align: center;
+}
+
+#loginGlassCard {
+  margin-top: 5%;
+  padding: 5%;
+}
+
+#loginButton {
+  margin-top: 5%;
+}
+
+#registerButton {
+  margin-top: 5%;
+  background-color: #FFB997;
+}

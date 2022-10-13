@@ -1,5 +1,6 @@
 using System.Text;
 using Fido2NetLib;
+using Fido2NetLib.Development;
 using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -11,7 +12,7 @@ namespace PasskeyDemo.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthenticationController : Controller
+public class AuthenticationController : ControllerBase
 {
     private readonly IFido2 _fido2;
     private readonly IUserRepository _userRepository;
@@ -29,10 +30,10 @@ public class AuthenticationController : Controller
     public async Task<bool> IsUsernameAvailable(string username)
     {
         var doesUserExist = await _userRepository.GetUser(username);
-
+    
         return doesUserExist is null;
     }
-
+    
     [HttpGet]
     [Route("/[controller]/GetCredentialOptions")]
     public CredentialCreateOptions GetCredentialOptions(string username)
@@ -45,15 +46,13 @@ public class AuthenticationController : Controller
                 Name = username,
                 Id = Encoding.UTF8.GetBytes(username)
             };
-
+    
             var options = _fido2.RequestNewCredential(
                 fidoUser,
                 new List<PublicKeyCredentialDescriptor>(),
                 new AuthenticatorSelection(),
                 AttestationConveyancePreference.None,
                 new AuthenticationExtensionsClientInputs());
-
-            options.Rp = new PublicKeyCredentialRpEntity("127.0.0.1", "Rick Testing", "");
             
             return options;
         }
@@ -62,15 +61,13 @@ public class AuthenticationController : Controller
             return new CredentialCreateOptions { Status = "error", ErrorMessage = "Error" };
         }
     }
-
+    
     [HttpPost]
     [Route("/[controller]/MakeCredential")]
     public async Task MakeCredential([FromBody] MakeCredentialRequestBody request)
     {
         try
         {
-            
-            
             var attestationObject = new AuthenticatorAttestationRawResponse()
             {
                 Id = request.Id,
@@ -79,9 +76,10 @@ public class AuthenticationController : Controller
                 {
                     AttestationObject = request.AttestationObject,
                     ClientDataJson = request.ClientDataJson
-                }
+                },
+                Type = PublicKeyCredentialType.PublicKey
             };
-
+    
             var credential = await _fido2.MakeNewCredentialAsync(
                 attestationObject, 
                 request.Options,
@@ -89,17 +87,30 @@ public class AuthenticationController : Controller
                 {
                     return Task.FromResult(true);
                 });
-            
-            // var newUser = new User()
-            // {
-            //     Id = request.Options.User.Id,
-            //     Username = request.Options.User.Name,
-            //     DisplayName = request.Options.User.DisplayName,
-            //     // Attestation = ConvertGarbage(request.AttestationObject)
-            // };
-            //
-            // await _userRepository.CreateUser(newUser);
 
+            if (credential.Result is null) return;
+
+            var storedCredential = new StoredCredential
+            {
+                Descriptor = new PublicKeyCredentialDescriptor(credential.Result.CredentialId),
+                PublicKey = credential.Result.PublicKey,
+                UserHandle = credential.Result.User.Id,
+                SignatureCounter = credential.Result.Counter,
+                CredType = credential.Result.CredType,
+                RegDate = DateTime.Now,
+                AaGuid = credential.Result.Aaguid
+            };
+            
+            var newUser = new User
+            {
+                Id = request.Options.User.Id,
+                Username = request.Options.User.Name,
+                DisplayName = request.Options.User.DisplayName,
+                Credential = storedCredential
+            };
+            
+            await _userRepository.CreateUser(newUser);
+    
             
             var ten = 10;
         }
@@ -108,7 +119,7 @@ public class AuthenticationController : Controller
             var ten = 10;
         }
     }
-
+    
     [HttpGet]
     [Route("/[controller]/GetAttestationOptions")]
     public async Task<AssertionOptions> GetAttestationOptions(string username)
@@ -118,10 +129,10 @@ public class AuthenticationController : Controller
         
         var allowedCredentials = new List<PublicKeyCredentialDescriptor> { new(user.Id) };
         var output = _fido2.GetAssertionOptions(allowedCredentials, UserVerificationRequirement.Preferred);
-
+    
         return output;
     }
-
+    
     private byte[] ConvertGarbage(string input)
     {
         var output = Base64UrlEncoder.DecodeBytes(input);

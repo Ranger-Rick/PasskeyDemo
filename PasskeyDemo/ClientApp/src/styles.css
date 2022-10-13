@@ -1,16 +1,88 @@
-/* You can add global styles to this file, and also import other style files */
-
-/* Provide sufficient contrast against white background */
-a {
-  color: #0366d6;
+* {
+  margin: 0;
+  padding: 0;
+  -webkit-touch-callout: none;
+  outline-style: none;
+  z-index: 1;
 }
 
-code {
-  color: #e01a76;
+#mainContent {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-image: linear-gradient(to bottom right, #621940, #0B032D);
 }
 
-.btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+.accent {
+  z-index: 0;
+  overflow: hidden;
+  position: fixed;
+  border-radius: 100%;
+  border-style: none;
+  background-image: linear-gradient(#FFB997, #F67E7D);;
 }
+
+#smallAccent {
+  height: 10rem;
+  width: 10rem;
+  top: 15%;
+  left: -2%;
+  rotate: 45deg;
+}
+
+#mediumAccent {
+  height: 30rem;
+  width: 30rem;
+  top: 30%;
+  left: 75%;
+  rotate: -25deg;
+}
+
+#largeAccent {
+  height: 40rem;
+  width: 40rem;
+  top: 85%;
+  left: -50%;
+  rotate: 180deg;
+}
+
+
+
+.grow {
+  -webkit-transition: transform .5s;
+  transition: transform .5s;
+}
+.grow:hover {
+  transform: scale(1.05, 1.05);
+}
+
+.glass {
+  background: rgba( 255, 255, 255, 0.2 );
+  box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+  backdrop-filter: blur( 8.5px );
+  -webkit-backdrop-filter: blur( 8.5px );
+  border-radius: 10px;
+  border: 1px solid rgba( 255, 255, 255, 0.18 );
+}
+
+.instructionLabel {
+  color: white;
+  font-size: 1.5em;
+  text-align: left;
+}
+
+.customButton {
+  border-radius: 10em;
+  background-color: #F67E7D;
+  color: white;
+  text-align: center;
+  max-width: 15rem;
+  padding-top: 0.5rem;
+  height: 4rem;
+  font-size: 2em;
+  cursor: pointer;
+}
+
+

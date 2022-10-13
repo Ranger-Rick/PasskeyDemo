@@ -19,6 +19,7 @@ public class WeatherForecastController : ControllerBase
     }
 
     [HttpGet]
+    [Route("testing")]
     public IEnumerable<WeatherForecast> Get()
     {
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast
