@@ -1,10 +1,11 @@
 using System.Text.Json;
+using Fido2NetLib.Development;
 using PasskeyDemo.Interfaces;
 using PasskeyDemo.Models;
 
 namespace PasskeyDemo.Services;
 
-public class DemoUserRepository : IUserRepository
+public class DemoUserRepository : IUserRepository, ICredentialRepository
 {
     private const string FileName = "TempDatabase.txt";
 
@@ -36,12 +37,22 @@ public class DemoUserRepository : IUserRepository
 
         return matchingUser;
     }
+    
+    public async Task<StoredCredential> GetCredentialById(byte[] id)
+    {
+        var users = await GetAllUsers();
+        var credential = users.FirstOrDefault(c => c.Credential.Descriptor.Id.AsSpan().SequenceEqual(id));
+
+        if (credential is null) return new StoredCredential();
+
+        return credential.Credential;
+    }
 
     private bool UserExists(List<User> existingUsers, User user)
     {
         return existingUsers.Any(u => u.Username == user.Username);
     }
-
+    
     private async Task<List<User>> GetAllUsers()
     {
         try
@@ -55,4 +66,6 @@ public class DemoUserRepository : IUserRepository
             return new List<User>();
         }
     }
+
+    
 }

@@ -16,13 +16,16 @@ public class AuthenticationController : ControllerBase
 {
     private readonly IFido2 _fido2;
     private readonly IUserRepository _userRepository;
+    private readonly ICredentialRepository _credentialRepository;
 
     public AuthenticationController(
         IFido2 fido2, 
-        IUserRepository userRepository)
+        IUserRepository userRepository, 
+        ICredentialRepository credentialRepository)
     {
         _fido2 = fido2;
         _userRepository = userRepository;
+        _credentialRepository = credentialRepository;
     }
 
     [HttpGet]
@@ -64,11 +67,11 @@ public class AuthenticationController : ControllerBase
     
     [HttpPost]
     [Route("/[controller]/MakeCredential")]
-    public async Task MakeCredential([FromBody] MakeCredentialRequestBody request)
+    public async Task MakeCredential([FromBody] MakeCredentialDto request)
     {
         try
         {
-            var attestationObject = new AuthenticatorAttestationRawResponse()
+            var attestationObject = new AuthenticatorAttestationRawResponse
             {
                 Id = request.Id,
                 RawId = request.RawId,
@@ -121,21 +124,53 @@ public class AuthenticationController : ControllerBase
     }
     
     [HttpGet]
-    [Route("/[controller]/GetAttestationOptions")]
+    [Route("/[controller]/GetAssertionOptions")]
     public async Task<AssertionOptions> GetAttestationOptions(string username)
     {
         var user = await _userRepository.GetUser(username);
         if (user is null) return new AssertionOptions();
         
-        var allowedCredentials = new List<PublicKeyCredentialDescriptor> { new(user.Id) };
+        var allowedCredentials = new List<PublicKeyCredentialDescriptor> { user.Credential.Descriptor };
         var output = _fido2.GetAssertionOptions(allowedCredentials, UserVerificationRequirement.Preferred);
     
         return output;
     }
-    
-    private byte[] ConvertGarbage(string input)
+
+    [HttpPost]
+    [Route("/[controller]/MakeAssertion")]
+    public async Task<AssertionVerificationResult> MakeAssertion([FromBody] MakeAssertionDto assertionDto)
     {
-        var output = Base64UrlEncoder.DecodeBytes(input);
-        return output;
+        var credential = await _credentialRepository.GetCredentialById(assertionDto.Id);
+
+        var storedCounter = credential.SignatureCounter;
+        
+        // 4. Create callback to check if userhandle owns the credentialId
+        IsUserHandleOwnerOfCredentialIdAsync callback = static async (args, cancellationToken) =>
+        {
+            // var storedCreds = await DemoStorage.GetCredentialsByUserHandleAsync(args.UserHandle, cancellationToken);
+            // return storedCreds.Exists(c => c.Descriptor.Id.SequenceEqual(args.CredentialId));
+            return true;
+        };
+
+        var assertionRawResponse = new AuthenticatorAssertionRawResponse
+        {
+            Id = assertionDto.Id,
+            RawId = assertionDto.RawId,
+            Type = PublicKeyCredentialType.PublicKey,
+            Response = new AuthenticatorAssertionRawResponse.AssertionResponse
+            {
+                Signature = assertionDto.Signature,
+                AuthenticatorData = assertionDto.AuthenticatorData,
+                ClientDataJson = assertionDto.ClientDataJson,
+                UserHandle = assertionDto.UserHandle
+            }
+        };
+
+        var response = await _fido2.MakeAssertionAsync(assertionRawResponse, assertionDto.AssertionOptions, credential.PublicKey, storedCounter, callback);
+        
+        //Documentation says we need to update the Signature Counter here. I'm not sure why though
+        //TODO: Update the SignatureCounter
+
+        return response;
     }
 }

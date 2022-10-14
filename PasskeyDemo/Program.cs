@@ -76,5 +76,6 @@ public class Program
     private static void AddServices(IServiceCollection services)
     {
         services.AddTransient<IUserRepository, DemoUserRepository>();
+        services.AddTransient<ICredentialRepository, DemoUserRepository>();
     }
 }

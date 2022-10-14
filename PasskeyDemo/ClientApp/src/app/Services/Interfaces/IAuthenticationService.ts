@@ -9,4 +9,6 @@ export interface IAuthenticationService {
   MakeCredential(makeCredentialRequestBody: any): Observable<any>;
 
   GetAttestationOptions(username: string): Observable<any>;
+
+  MakeAssertion(makeAssertionRequestBody: any): Observable<any>;
 }

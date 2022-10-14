@@ -28,6 +28,10 @@ export class TestingAuthenticationService implements IAuthenticationService {
   }
 
   GetAttestationOptions(username: string): Observable<any>{
-    return this.http.get(this.baseUrl + "GetAttestationOptions?username=" + username);
+    return this.http.get(this.baseUrl + "GetAssertionOptions?username=" + username);
+  }
+
+  MakeAssertion(makeAssertionRequestBody: any): Observable<any> {
+    return this.http.post<any>(this.baseUrl + "MakeAssertion", makeAssertionRequestBody);
   }
 }
