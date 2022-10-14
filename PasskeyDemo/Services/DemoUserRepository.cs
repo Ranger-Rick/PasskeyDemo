@@ -7,7 +7,7 @@ namespace PasskeyDemo.Services;
 
 public class DemoUserRepository : IUserRepository, ICredentialRepository
 {
-    private const string FileName = "TempDatabase.txt";
+    private const string FileName = "TempDatabase.json";
 
     public async Task CreateUser(User user)
     {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {TestingAuthenticationService} from "../Services/authentication.service";
 import {ConvertService} from "../Services/convert.service";
 import {firstValueFrom} from "rxjs";
@@ -62,33 +62,15 @@ export class RegisterComponent implements OnInit {
     try {
       console.log("Making the Credential");
 
-      // let credential = navigator.credentials.create({
-      //   publicKey: {
-      //     challenge: Uint8Array.from(credentialOptions.challenge),
-      //     rp: {
-      //       name: "Rick Bordelon",
-      //       // id: "Localhost",
-      //     },
-      //     user: {
-      //       id: Uint8Array.from(credentialOptions.user.id),
-      //       name: credentialOptions.user.name,
-      //       displayName: credentialOptions.user.displayName
-      //     },
-      //     pubKeyCredParams: [{alg: -7, type: "public-key"}],
-      //     timeout: 60000
-      //   }
-      // });
+      let enc = new TextEncoder();
+      let userIdAsArrayBuffer = enc.encode(credentialOptions.user.id);
 
       credentialOptions.challenge = Uint8Array.from(credentialOptions.challenge);
-      credentialOptions.user.id = Uint8Array.from(credentialOptions.user.id);
+      credentialOptions.user.id = userIdAsArrayBuffer;
 
-      let credential = navigator.credentials.create({
+      return navigator.credentials.create({
         publicKey: credentialOptions
       });
-
-
-
-      return credential;
     }
     catch (e) {
       console.log(e);
