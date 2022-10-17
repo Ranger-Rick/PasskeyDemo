@@ -2,6 +2,7 @@ import {Inject, Injectable} from '@angular/core';
 import {IAuthenticationService} from "./Interfaces/IAuthenticationService";
 import {Observable} from "rxjs";
 import {HttpClient} from "@angular/common/http";
+import {MakeAssertionResponseDto} from "../Models/MakeAssertionResponseDto";
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +32,7 @@ export class TestingAuthenticationService implements IAuthenticationService {
     return this.http.get(this.baseUrl + "GetAssertionOptions?username=" + username);
   }
 
-  MakeAssertion(makeAssertionRequestBody: any): Observable<any> {
-    return this.http.post<any>(this.baseUrl + "MakeAssertion", makeAssertionRequestBody);
+  MakeAssertion(makeAssertionRequestBody: any): Observable<MakeAssertionResponseDto> {
+    return this.http.post<MakeAssertionResponseDto>(this.baseUrl + "MakeAssertion", makeAssertionRequestBody);
   }
 }

@@ -1,3 +1,7 @@
+using System.Configuration;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using PasskeyDemo.Interfaces;
 using PasskeyDemo.Services;
 
@@ -16,6 +20,7 @@ public class Program
         
         ConfigureFido2(builder);
         AddCors(builder);
+        AddAuthentication(builder);
         AddServices(builder.Services);
 
         var app = builder.Build();
@@ -30,6 +35,8 @@ public class Program
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseRouting();
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.UseEndpoints(endpoints =>
         {
@@ -77,5 +84,32 @@ public class Program
     {
         services.AddTransient<IUserRepository, DemoUserRepository>();
         services.AddTransient<ICredentialRepository, DemoUserRepository>();
+    }
+
+    private static void AddAuthentication(WebApplicationBuilder builder)
+    {
+        var secret = builder.Configuration["Security:AppSecretKey"];
+        if (secret is null or "") throw new Exception("AppSecretKey not set");
+
+        var key = Encoding.ASCII.GetBytes(secret);
+
+        builder.Services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
     }
 }

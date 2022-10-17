@@ -37,7 +37,23 @@ public class DemoUserRepository : IUserRepository, ICredentialRepository
 
         return matchingUser;
     }
-    
+
+    public async Task<User?> GetUser(byte[] userId)
+    {
+        var allUsers = await GetAllUsers();
+        var matchingUser = allUsers.FirstOrDefault(u => u.Id.AsSpan().SequenceEqual(userId));
+
+        return matchingUser;
+    }
+
+    public async Task<bool> IsUsernameAvailable(string username)
+    {
+        var allUsers = await GetAllUsers();
+        var matchingUser = allUsers.FirstOrDefault(u => u.Username == username);
+
+        return matchingUser is not null;
+    }
+
     public async Task<StoredCredential> GetCredentialById(byte[] id)
     {
         var users = await GetAllUsers();

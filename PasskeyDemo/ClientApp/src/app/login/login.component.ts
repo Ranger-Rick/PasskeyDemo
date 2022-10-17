@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import {TestingAuthenticationService} from "../Services/authentication.service";
 import {ConvertService} from "../Services/convert.service";
 import {firstValueFrom} from "rxjs";
+import {MakeAssertionResponseDto} from "../Models/MakeAssertionResponseDto";
+import {BrowserStorageService} from "../Services/browser-storage.service";
+import {Constants} from "../Constants";
 
 @Component({
   selector: 'app-login',
@@ -14,10 +17,12 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private authService: TestingAuthenticationService,
-    private convertService: ConvertService
+    private convertService: ConvertService,
+    private persistentStorage: BrowserStorageService
   ) { }
 
   ngOnInit(): void {
+    this.ClearPersistentProperties()
   }
 
   async Login(): Promise<void>{
@@ -77,6 +82,28 @@ export class LoginComponent implements OnInit {
     let response = await firstValueFrom(this.authService.MakeAssertion(requestBody));
     console.log("Assertion Response:");
     console.log(response);
+
+    if (!response.executedSuccessfully) {
+      alert("Unable to verify your Passkey");
+      return;
+    }
+
+    this.SetPersistentProperties(response);
+    
+  }
+
+  SetPersistentProperties(options: MakeAssertionResponseDto): void {
+    this.persistentStorage.SetValue(Constants.UserId, options.userId);
+    this.persistentStorage.SetValue(Constants.Username, options.username);
+    this.persistentStorage.SetValue(Constants.DisplayName, options.displayName);
+    this.persistentStorage.SetValue(Constants.Token, options.token);
+  }
+
+  ClearPersistentProperties(): void {
+    this.persistentStorage.SetValue(Constants.UserId, "");
+    this.persistentStorage.SetValue(Constants.Username, "");
+    this.persistentStorage.SetValue(Constants.DisplayName, "");
+    this.persistentStorage.SetValue(Constants.Token, "");
   }
 
 }
