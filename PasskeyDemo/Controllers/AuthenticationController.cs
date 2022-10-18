@@ -73,60 +73,64 @@ public class AuthenticationController : ControllerBase
     
     [HttpPost]
     [Route("/[controller]/MakeCredential")]
-    public async Task MakeCredential([FromBody] MakeCredentialDto request)
+    public async Task<LoginResponseDto> MakeCredential([FromBody] MakeCredentialDto request)
     {
-        try
+        var attestationObject = new AuthenticatorAttestationRawResponse
         {
-            var attestationObject = new AuthenticatorAttestationRawResponse
+            Id = request.Id,
+            RawId = request.RawId,
+            Response = new()
             {
-                Id = request.Id,
-                RawId = request.RawId,
-                Response = new()
-                {
-                    AttestationObject = request.AttestationObject,
-                    ClientDataJson = request.ClientDataJson
-                },
-                Type = PublicKeyCredentialType.PublicKey
-            };
-    
-            var credential = await _fido2.MakeNewCredentialAsync(
-                attestationObject, 
-                request.Options,
-                (p, token) =>
-                {
-                    return Task.FromResult(true);
-                });
+                AttestationObject = request.AttestationObject,
+                ClientDataJson = request.ClientDataJson
+            },
+            Type = PublicKeyCredentialType.PublicKey
+        };
 
-            if (credential.Result is null) return;
+        var credential = await _fido2.MakeNewCredentialAsync(
+            attestationObject, 
+            request.Options,
+            (p, token) =>
+            {
+                return Task.FromResult(true);
+            });
 
-            var storedCredential = new StoredCredential
-            {
-                Descriptor = new PublicKeyCredentialDescriptor(credential.Result.CredentialId),
-                PublicKey = credential.Result.PublicKey,
-                UserHandle = credential.Result.User.Id,
-                SignatureCounter = credential.Result.Counter,
-                CredType = credential.Result.CredType,
-                RegDate = DateTime.Now,
-                AaGuid = credential.Result.Aaguid
-            };
-            
-            var newUser = new User
-            {
-                Id = request.Options.User.Id,
-                Username = request.Options.User.Name,
-                DisplayName = request.Options.User.DisplayName,
-                Credential = storedCredential
-            };
-            
-            await _userRepository.CreateUser(newUser);
-    
-            
-            var ten = 10;
-        }
-        catch (Exception e)
+        if (credential.Result is null) return new LoginResponseDto(false);
+
+        var storedCredential = new StoredCredential
         {
-            var ten = 10;
-        }
+            Descriptor = new PublicKeyCredentialDescriptor(credential.Result.CredentialId),
+            PublicKey = credential.Result.PublicKey,
+            UserHandle = credential.Result.User.Id,
+            SignatureCounter = credential.Result.Counter,
+            CredType = credential.Result.CredType,
+            RegDate = DateTime.Now,
+            AaGuid = credential.Result.Aaguid
+        };
+        
+        var newUser = new User
+        {
+            Id = request.Options.User.Id,
+            Username = request.Options.User.Name,
+            DisplayName = request.Options.User.DisplayName,
+            Credential = storedCredential
+        };
+        
+        await _userRepository.CreateUser(newUser);
+
+        var token = GenerateToken(newUser);
+        
+        var output = new LoginResponseDto
+        {
+            UserId = Encoding.ASCII.GetString(newUser.Id),
+            Username = newUser.Username,
+            DisplayName = newUser.DisplayName,
+            Color = newUser.Color,
+            Token = token
+        };
+
+        return output;
+
     }
     
     [HttpGet]
@@ -144,7 +148,7 @@ public class AuthenticationController : ControllerBase
 
     [HttpPost]
     [Route("/[controller]/MakeAssertion")]
-    public async Task<MakeAssertionResponseDto> MakeAssertion([FromBody] MakeAssertionDto assertionDto)
+    public async Task<LoginResponseDto> MakeAssertion([FromBody] MakeAssertionDto assertionDto)
     {
         var credential = await _credentialRepository.GetCredentialById(assertionDto.Id);
 
@@ -178,12 +182,11 @@ public class AuthenticationController : ControllerBase
         //TODO: Update the SignatureCounter
 
         var user = await _userRepository.GetUser(assertionDto.UserHandle);
-        if (user is null) return new MakeAssertionResponseDto(false);
+        if (user is null) return new LoginResponseDto(false);
         var token = GenerateToken(user);
 
-        var output = new MakeAssertionResponseDto
+        var output = new LoginResponseDto
         {
-            ExecutedSuccessfully = true,
             UserId = Encoding.ASCII.GetString(user.Id),
             Username = user.Username,
             DisplayName = user.DisplayName,

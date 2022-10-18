@@ -6,3 +6,4 @@ PasskeyDemo/TempDatabase.json
 
 #Angular App
 PasskeyDemo/ClientApp/.angular/cache
+node_modules/

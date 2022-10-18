@@ -2,9 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import {TestingAuthenticationService} from "../Services/authentication.service";
 import {ConvertService} from "../Services/convert.service";
 import {firstValueFrom} from "rxjs";
-import {MakeAssertionResponseDto} from "../Models/MakeAssertionResponseDto";
-import {BrowserStorageService} from "../Services/browser-storage.service";
-import {Constants} from "../Constants";
+import {Router} from "@angular/router";
+import {PersistentPropertiesService} from "../Services/persistent-properties.service";
 
 @Component({
   selector: 'app-login',
@@ -16,13 +15,14 @@ export class LoginComponent implements OnInit {
   username: string = "";
 
   constructor(
+    private route: Router,
     private authService: TestingAuthenticationService,
     private convertService: ConvertService,
-    private persistentStorage: BrowserStorageService
+    private persistentStorage: PersistentPropertiesService
   ) { }
 
   ngOnInit(): void {
-    this.ClearPersistentProperties()
+    this.persistentStorage.ClearPersistentProperties()
   }
 
   async Login(): Promise<void>{
@@ -88,22 +88,9 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.SetPersistentProperties(response);
-    
-  }
+    this.persistentStorage.SetPersistentProperties(response);
 
-  SetPersistentProperties(options: MakeAssertionResponseDto): void {
-    this.persistentStorage.SetValue(Constants.UserId, options.userId);
-    this.persistentStorage.SetValue(Constants.Username, options.username);
-    this.persistentStorage.SetValue(Constants.DisplayName, options.displayName);
-    this.persistentStorage.SetValue(Constants.Token, options.token);
-  }
-
-  ClearPersistentProperties(): void {
-    this.persistentStorage.SetValue(Constants.UserId, "");
-    this.persistentStorage.SetValue(Constants.Username, "");
-    this.persistentStorage.SetValue(Constants.DisplayName, "");
-    this.persistentStorage.SetValue(Constants.Token, "");
+    await this.route.navigateByUrl("/circle");
   }
 
 }

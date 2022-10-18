@@ -2,6 +2,8 @@ import {Component, OnInit} from '@angular/core';
 import {TestingAuthenticationService} from "../Services/authentication.service";
 import {ConvertService} from "../Services/convert.service";
 import {firstValueFrom} from "rxjs";
+import {PersistentPropertiesService} from "../Services/persistent-properties.service";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-register',
@@ -13,8 +15,10 @@ export class RegisterComponent implements OnInit {
   username: string = "";
 
   constructor(
+    private route: Router,
     private authService: TestingAuthenticationService,
-    private convertService: ConvertService
+    private convertService: ConvertService,
+    private persistentStorage: PersistentPropertiesService
   ) { }
 
   ngOnInit(): void {
@@ -56,6 +60,14 @@ export class RegisterComponent implements OnInit {
     let response = await firstValueFrom(this.authService.MakeCredential(requestBody));
 
     console.log(response);
+
+    if (!response.executedSuccessfully){
+      alert("Unable to register your account");
+      return;
+    }
+
+    this.persistentStorage.SetPersistentProperties(response);
+    await this.route.navigateByUrl("/circle");
   }
 
   MakeCredential(credentialOptions: any): Promise<any> {

@@ -1,4 +1,4 @@
-export class MakeAssertionResponseDto {
+export class LoginResponseDto {
   executedSuccessfully: boolean;
   userId: string;
   username: string;

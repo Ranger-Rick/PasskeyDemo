@@ -6,16 +6,15 @@ import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
-import { CounterComponent } from './counter/counter.component';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 import { CircleColorComponent } from './circle-color/circle-color.component';
+import {AuthGuard} from "./Services/auth-guard";
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    CounterComponent,
     LoginComponent,
     RegisterComponent,
     CircleColorComponent
@@ -26,10 +25,11 @@ import { CircleColorComponent } from './circle-color/circle-color.component';
     FormsModule,
     RouterModule.forRoot([
       { path: '', component: LoginComponent, pathMatch: 'full' },
-      { path: 'register', component: RegisterComponent }
+      { path: 'register', component: RegisterComponent },
+      { path: 'circle', component: CircleColorComponent, canActivate: [AuthGuard] }
     ])
   ],
-  providers: [],
+  providers: [AuthGuard],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
