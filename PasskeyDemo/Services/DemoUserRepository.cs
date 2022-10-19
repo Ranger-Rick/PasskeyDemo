@@ -19,15 +19,20 @@ public class DemoUserRepository : IUserRepository, ICredentialRepository
         
         allUsers.Add(user);
 
-        var writeSting = JsonSerializer.Serialize(allUsers);
+        var writeString = JsonSerializer.Serialize(allUsers);
         
-        await File.WriteAllTextAsync(FileName, writeSting);
+        await File.WriteAllTextAsync(FileName, writeString);
     }
 
-    public Task UpdateUser(User user)
+    public async Task UpdateUser(User user)
     {
-        var userString = JsonSerializer.Serialize(user);
-        return Task.CompletedTask;
+        var allUsers = await GetAllUsers();
+        allUsers.RemoveAll(u => u.Id.AsSpan().SequenceEqual(user.Id));
+        
+        allUsers.Add(user);
+
+        var writeString = JsonSerializer.Serialize(allUsers);
+        await File.WriteAllTextAsync(FileName, writeString);
     }
 
     public async Task<User?> GetUser(string username)

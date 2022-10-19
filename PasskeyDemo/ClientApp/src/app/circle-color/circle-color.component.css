@@ -1,0 +1,34 @@
+#title {
+  font-size: 4em;
+  color: white;
+  text-align: center;
+}
+
+#subTitle{
+  margin-top: 2rem;
+  margin-bottom: 4rem;
+  font-size: 1.5rem;
+  color: white;
+  text-align: center;
+}
+
+#circleContent {
+  margin: auto;
+  border-radius: 100%;
+  border-style: solid;
+  border-color: black;
+  border-width: .5rem;
+  height: 30vw;
+  width: 30vw;
+}
+
+#instructionLabel {
+  margin-top: 3rem;
+  color: white;
+}
+
+input {
+  margin: auto;
+  cursor: pointer;
+  width: 30%;
+}

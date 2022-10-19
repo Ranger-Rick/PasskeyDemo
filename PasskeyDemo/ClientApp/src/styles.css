@@ -6,7 +6,7 @@
   z-index: 1;
 }
 
-#mainContent {
+.mainContent {
   width: 100vw;
   height: 100vh;
   margin: 0;
@@ -21,7 +21,7 @@
   position: fixed;
   border-radius: 100%;
   border-style: none;
-  background-image: linear-gradient(#FFB997, #F67E7D);;
+  background-image: linear-gradient(#FFB997, #F67E7D);
 }
 
 #smallAccent {

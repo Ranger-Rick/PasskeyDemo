@@ -9,7 +9,7 @@ import {LoginResponseDto} from "../Models/LoginResponseDto";
 })
 export class TestingAuthenticationService implements IAuthenticationService {
 
-  baseUrl: string = "";
+  baseUrl: string;
 
   constructor(private http: HttpClient, @Inject('BASE_URL') baseUrl: string) {
     this.baseUrl = baseUrl + "Authentication/";

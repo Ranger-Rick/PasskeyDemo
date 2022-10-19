@@ -12,6 +12,8 @@ const PROXY_CONFIG = [
       "/Authentication/MakeCredential",
       "/Authentication/GetAssertionOptions",
       "/Authentication/MakeAssertion",
+      "/Color/GetColor",
+      "/Color/UpdateColor"
    ],
     target: target,
     secure: false,

@@ -1,1 +1,48 @@
-<p>circle-color works!</p>
+<div class="mainContent">
+<!--  <div id="smallAccent" class="accent"></div>-->
+<!--  <div id="mediumAccent" class="accent"></div>-->
+<!--  <div id="largeAccent" class="accent"></div>-->
+
+  <div class="row">
+    <div class="col-2"></div>
+    <div id="title" class="col-8">
+      You are logged in!
+    </div>
+    <div class="col-2"></div>
+  </div>
+
+  <div class="row">
+    <div class="col-2"></div>
+    <div id="subTitle" class="col-8">
+      Wasn't that easy? More people should be excited about Passkeys!
+    </div>
+    <div class="col-2"></div>
+  </div>
+
+  <div class="row">
+    <div class="col-2"></div>
+    <div
+      id="circleContent"
+      class="col-8"
+      [style.background-color]="color"></div>
+    <div class="col-2"></div>
+  </div>
+
+  <div class="row">
+    <div class="col-2"></div>
+    <div id="instructionLabel" class="col-8">
+      Select a color for your circle:
+    </div>
+    <div class="col-2"></div>
+  </div>
+  <div class="row">
+    <div class="col-2"></div>
+    <div  class="col-8">
+      <input
+        type="color"
+        [(ngModel)]="color"
+        (change)="OnColorChanged()">
+    </div>
+    <div class="col-2"></div>
+  </div>
+</div>
