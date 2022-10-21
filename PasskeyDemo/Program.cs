@@ -85,6 +85,7 @@ public class Program
         services.AddTransient<IUserRepository, DemoUserRepository>();
         services.AddTransient<ICredentialRepository, DemoUserRepository>();
         services.AddTransient<ITokenGenerator, JwtSecurityGenerator>();
+        services.AddTransient<IWebAuthentication, WebAuthentication>();
     }
 
     private static void AddAuthentication(WebApplicationBuilder builder)
