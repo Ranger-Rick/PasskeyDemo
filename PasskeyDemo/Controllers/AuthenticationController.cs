@@ -16,15 +16,18 @@ public class AuthenticationController : ControllerBase
     private readonly ITokenGenerator _tokenGenerator;
     private readonly IWebAuthentication _authentication;
     private readonly IUserRepository _userRepository;
+    private readonly IUserRegistration _userRegistration;
 
     public AuthenticationController(
         IUserRepository userRepository, 
         ITokenGenerator tokenGenerator, 
-        IWebAuthentication authentication)
+        IWebAuthentication authentication, 
+        IUserRegistration userRegistration)
     {
         _userRepository = userRepository;
         _tokenGenerator = tokenGenerator;
         _authentication = authentication;
+        _userRegistration = userRegistration;
     }
 
     [HttpGet]
@@ -79,26 +82,9 @@ public class AuthenticationController : ControllerBase
 
         if (credential.Result is null) return new LoginResponseDto(false);
 
-        var storedCredential = new StoredCredential
-        {
-            Descriptor = new PublicKeyCredentialDescriptor(credential.Result.CredentialId),
-            PublicKey = credential.Result.PublicKey,
-            UserHandle = credential.Result.User.Id,
-            SignatureCounter = credential.Result.Counter,
-            CredType = credential.Result.CredType,
-            RegDate = DateTime.Now,
-            AaGuid = credential.Result.Aaguid
-        };
+        var newUser = await _userRegistration.CreateUser(credential, request.Options);
         
-        var newUser = new User
-        {
-            Id = request.Options.User.Id,
-            Username = request.Options.User.Name,
-            DisplayName = request.Options.User.DisplayName,
-            Credential = storedCredential
-        };
-        
-        await _userRepository.CreateUser(newUser);
+        if (newUser is null) return new LoginResponseDto(false);
 
         var token = _tokenGenerator.GenerateToken(newUser);
         
