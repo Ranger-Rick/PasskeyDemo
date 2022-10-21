@@ -1,11 +1,8 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
 using Fido2NetLib;
 using Fido2NetLib.Development;
 using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using PasskeyDemo.Interfaces;
 using PasskeyDemo.Models;
 using PasskeyDemo.Models.DTO;
@@ -16,22 +13,21 @@ namespace PasskeyDemo.Controllers;
 [Route("[controller]")]
 public class AuthenticationController : ControllerBase
 {
-    private readonly IConfiguration _config;
+    private readonly ITokenGenerator _tokenGenerator;
     private readonly IFido2 _fido2;
     private readonly IUserRepository _userRepository;
     private readonly ICredentialRepository _credentialRepository;
 
     public AuthenticationController(
-        IConfiguration config,
         IFido2 fido2, 
         IUserRepository userRepository, 
-        ICredentialRepository credentialRepository)
+        ICredentialRepository credentialRepository, 
+        ITokenGenerator tokenGenerator)
     {
-        _config = config;
         _fido2 = fido2;
         _userRepository = userRepository;
         _credentialRepository = credentialRepository;
-        
+        _tokenGenerator = tokenGenerator;
     }
 
     [HttpGet]
@@ -118,7 +114,7 @@ public class AuthenticationController : ControllerBase
         
         await _userRepository.CreateUser(newUser);
 
-        var token = GenerateToken(newUser);
+        var token = _tokenGenerator.GenerateToken(newUser);
         
         var output = new LoginResponseDto
         {
@@ -183,7 +179,7 @@ public class AuthenticationController : ControllerBase
 
         var user = await _userRepository.GetUser(assertionDto.UserHandle);
         if (user is null) return new LoginResponseDto(false);
-        var token = GenerateToken(user);
+        var token = _tokenGenerator.GenerateToken(user);
 
         var output = new LoginResponseDto
         {
@@ -194,29 +190,6 @@ public class AuthenticationController : ControllerBase
             Token = token
         };
 
-        return output;
-    }
-
-    private string GenerateToken(User user)
-    {
-        var secret = _config["Security:AppSecretKey"];
-        if (secret is null or "") return "";
-
-        var key = Encoding.ASCII.GetBytes(secret);
-        var userId = Encoding.ASCII.GetString(user.Id);
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(new[] { new Claim("id", userId) }),
-            Expires = DateTime.UtcNow.AddMinutes(5),
-            SigningCredentials =
-                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        };
-
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        var output = tokenHandler.WriteToken(token);
         return output;
     }
 }
