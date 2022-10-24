@@ -3,6 +3,12 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * Why this service is necessary is so unnecessary. Fido and the client implementations for WebAuthn I guess didn't consider
+ * each other? And so they return things in formats that the other doesn't understand. This code is in the official Fido2
+ * demo project. It is mind boggling that this garbage wasn't considered before-hand. Developers shouldn't have to do this
+ * type of work
+ */
 export class ConvertService {
 
   constructor() { }
@@ -38,4 +44,11 @@ export class ConvertService {
 
     return thing;
   }
+
+  CoerceToBase64(challenge: string): Uint8Array {
+    let replacedChallenge = challenge.replace(/-/g, "+").replace(/_/g, "/");
+    let output = Uint8Array.from(atob(replacedChallenge), c => c.charCodeAt(0));
+    return output;
+  }
+
 }

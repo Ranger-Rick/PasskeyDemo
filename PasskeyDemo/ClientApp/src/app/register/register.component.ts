@@ -31,14 +31,7 @@ export class RegisterComponent implements OnInit {
 
     let credentialOptions = await firstValueFrom(this.authService.MakeCredentialOptions(this.username));
 
-    console.log("Credential Options:")
-    console.log(credentialOptions);
-
     let credential = await this.MakeCredential(credentialOptions);
-
-
-    console.log("Credential:")
-    console.log(credential);
 
     credentialOptions.challenge = this.convertService.CoerceToBase64Url(credentialOptions.challenge);
     credentialOptions.user.id = this.convertService.CoerceToBase64Url(credentialOptions.user.id);
@@ -53,9 +46,6 @@ export class RegisterComponent implements OnInit {
       clientDataJSON: clientDataJson,
       options: credentialOptions
     }
-
-    console.log("Request Body:")
-    console.log(requestBody)
 
     let response = await firstValueFrom(this.authService.MakeCredential(requestBody));
 

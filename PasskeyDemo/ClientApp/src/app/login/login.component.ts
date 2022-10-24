@@ -27,15 +27,12 @@ export class LoginComponent implements OnInit {
 
   async Login(): Promise<void>{
     let assertionOptions = await firstValueFrom(this.authService.GetAttestationOptions(this.username));
-    console.log("Assertion Options:");
-    console.log(assertionOptions);
 
     let newAssertionOptions = assertionOptions;
 
-    // todo: switch this to coercebase64
-    const challenge = assertionOptions.challenge.replace(/-/g, "+").replace(/_/g, "/");
-    newAssertionOptions.challenge = Uint8Array.from(atob(challenge), c => c.charCodeAt(0));
+    newAssertionOptions.challenge = this.convertService.CoerceToBase64(assertionOptions.challenge);
 
+    //This code is in the official Fido2 demo project. I have no idea what it is doing but it smells really bad
     // fix escaping. Change this to coerce
     newAssertionOptions.allowCredentials.forEach(function (listItem: any) {
       var fixedId = listItem.id.replace(/\_/g, "/").replace(/\-/g, "+");
@@ -43,9 +40,6 @@ export class LoginComponent implements OnInit {
     });
 
     let credential = await navigator.credentials.get({ publicKey: newAssertionOptions });
-
-    console.log("Credential:")
-    console.log(credential);
 
     await this.VerifyAssertionWithServer(credential, assertionOptions);
   }
@@ -66,7 +60,7 @@ export class LoginComponent implements OnInit {
     let signature = this.convertService.CoerceToBase64Url(credentialResponse.signature);
     let userHandle = this.convertService.CoerceToBase64Url(credentialResponse.userHandle);
 
-    var requestBody = {
+    let requestBody = {
       id: id,
       authenticatorData: authData,
       signature: signature,
@@ -76,12 +70,7 @@ export class LoginComponent implements OnInit {
       assertionOptions: options
     }
 
-    console.log("Request Body:");
-    console.log(requestBody);
-
     let response = await firstValueFrom(this.authService.MakeAssertion(requestBody));
-    console.log("Assertion Response:");
-    console.log(response);
 
     if (!response.executedSuccessfully) {
       alert("Unable to verify your Passkey");
