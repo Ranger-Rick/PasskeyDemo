@@ -28,9 +28,11 @@ export class LoginComponent implements OnInit {
   async Login(): Promise<void>{
     let assertionOptions = await firstValueFrom(this.authService.GetAttestationOptions(this.username));
 
-    let newAssertionOptions = assertionOptions;
+    if (!assertionOptions.executedSuccessfully) return;
 
-    newAssertionOptions.challenge = this.convertService.CoerceToBase64(assertionOptions.challenge);
+    let newAssertionOptions = assertionOptions.result;
+
+    newAssertionOptions.challenge = this.convertService.CoerceToBase64(assertionOptions.result.challenge);
 
     //This code is in the official Fido2 demo project. I have no idea what it is doing but it smells really bad
     // fix escaping. Change this to coerce
@@ -41,7 +43,7 @@ export class LoginComponent implements OnInit {
 
     let credential = await navigator.credentials.get({ publicKey: newAssertionOptions });
 
-    await this.VerifyAssertionWithServer(credential, assertionOptions);
+    await this.VerifyAssertionWithServer(credential, assertionOptions.result);
   }
 
   async VerifyAssertionWithServer(assertedCredential: any, options: any){
@@ -77,7 +79,7 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.persistentStorage.SetPersistentProperties(response);
+    this.persistentStorage.SetPersistentProperties(response.result);
 
     await this.route.navigateByUrl("/circle");
   }

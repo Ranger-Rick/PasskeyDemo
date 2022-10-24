@@ -1,14 +1,16 @@
 import {Observable} from "rxjs";
+import {ITypedApiResponse} from "../../Interfaces/IApiResponse";
+import {LoginResponseDto} from "../../Models/LoginResponseDto";
 
 export interface IAuthenticationService {
-  IsUsernameAvailable(username: string): Observable<boolean>;
+  IsUsernameAvailable(username: string): Observable<ITypedApiResponse<boolean>>;
 
   //TODO: create a model or download an NPM module to get the data object for this response
-  MakeCredentialOptions(username: string): Observable<any>;
+  GetCredentialOptions(username: string): Observable<ITypedApiResponse<any>>;
 
-  MakeCredential(makeCredentialRequestBody: any): Observable<any>;
+  MakeCredential(makeCredentialRequestBody: any): Observable<ITypedApiResponse<LoginResponseDto>>;
 
-  GetAttestationOptions(username: string): Observable<any>;
+  GetAttestationOptions(username: string): Observable<ITypedApiResponse<any>>;
 
-  MakeAssertion(makeAssertionRequestBody: any): Observable<any>;
+  MakeAssertion(makeAssertionRequestBody: any): Observable<ITypedApiResponse<LoginResponseDto>>;
 }

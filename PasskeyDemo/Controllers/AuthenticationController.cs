@@ -1,6 +1,5 @@
 using System.Text;
 using Fido2NetLib;
-using Fido2NetLib.Development;
 using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Mvc;
 using PasskeyDemo.Interfaces;
@@ -32,16 +31,18 @@ public class AuthenticationController : ControllerBase
 
     [HttpGet]
     [Route("/[controller]/UsernameAvailable")]
-    public async Task<bool> IsUsernameAvailable(string username)
+    public async Task<IApiResponse<bool>> IsUsernameAvailable(string username)
     {
         var doesUserExist = await _userRepository.GetUser(username);
+
+        var output = new GenericApiResponse<bool>(doesUserExist is null);
     
-        return doesUserExist is null;
+        return output;
     }
     
     [HttpGet]
     [Route("/[controller]/GetCredentialOptions")]
-    public async Task<CredentialCreateOptions> GetCredentialOptions(string username)
+    public async Task<IApiResponse<CredentialCreateOptions>> GetCredentialOptions(string username)
     {
         try
         {
@@ -53,18 +54,20 @@ public class AuthenticationController : ControllerBase
             };
 
             var options = await _authentication.GetCredentialOptions(fidoUser);
+
+            var output = new GenericApiResponse<CredentialCreateOptions>(options);
             
-            return options;
+            return output;
         }
         catch (Exception e)
         {
-            return new CredentialCreateOptions { Status = "error", ErrorMessage = "Error" };
+            return new GenericApiResponse<CredentialCreateOptions>(null, "An error occurred", false);
         }
     }
     
     [HttpPost]
     [Route("/[controller]/MakeCredential")]
-    public async Task<LoginResponseDto> MakeCredential([FromBody] MakeCredentialDto request)
+    public async Task<IApiResponse<LoginResponseDto>> MakeCredential([FromBody] MakeCredentialDto request)
     {
         var attestationObject = new AuthenticatorAttestationRawResponse
         {
@@ -80,11 +83,11 @@ public class AuthenticationController : ControllerBase
 
         var credential = await _authentication.MakeCredential(attestationObject, request.Options);
 
-        if (credential.Result is null) return new LoginResponseDto(false);
+        if (credential.Result is null) return new GenericApiResponse<LoginResponseDto>(null, "An Error Occurred when making the credential", false);
 
         var newUser = await _userRegistration.CreateUser(credential, request.Options);
-        
-        if (newUser is null) return new LoginResponseDto(false);
+
+        if (newUser is null) return new GenericApiResponse<LoginResponseDto>(null, "An error occurred when creating the user", false);
 
         var token = _tokenGenerator.GenerateToken(newUser);
         
@@ -97,23 +100,23 @@ public class AuthenticationController : ControllerBase
             Token = token
         };
 
-        return output;
+        return new GenericApiResponse<LoginResponseDto>(output);
 
     }
     
     [HttpGet]
     [Route("/[controller]/GetAssertionOptions")]
-    public async Task<AssertionOptions> GetAssertionOptions(string username)
+    public async Task<IApiResponse<AssertionOptions>> GetAssertionOptions(string username)
     {
         var user = await _userRepository.GetUser(username);
-        if (user is null) return new AssertionOptions();
+        if (user is null) return new GenericApiResponse<AssertionOptions>(null, "Could not find user", false);
         var output = await _authentication.GetAssertionOptions(user);
-        return output;
+        return new GenericApiResponse<AssertionOptions>(output);
     }
 
     [HttpPost]
     [Route("/[controller]/MakeAssertion")]
-    public async Task<LoginResponseDto> MakeAssertion([FromBody] MakeAssertionDto assertionDto)
+    public async Task<IApiResponse<LoginResponseDto>> MakeAssertion([FromBody] MakeAssertionDto assertionDto)
     {
         var assertionRawResponse = new AuthenticatorAssertionRawResponse
         {
@@ -133,11 +136,11 @@ public class AuthenticationController : ControllerBase
 
         if (!response.CredentialId.AsSpan().SequenceEqual(assertionDto.Id))
         {
-            return new LoginResponseDto(false);
+            return new GenericApiResponse<LoginResponseDto>(null, "An error occurred when making the assertion", false);
         }
         
         var user = await _userRepository.GetUser(assertionDto.UserHandle);
-        if (user is null) return new LoginResponseDto(false);
+        if (user is null) return new GenericApiResponse<LoginResponseDto>(null, "Unable to get the user to generate a token", false);
         var token = _tokenGenerator.GenerateToken(user);
 
         var output = new LoginResponseDto
@@ -149,6 +152,6 @@ public class AuthenticationController : ControllerBase
             Token = token
         };
 
-        return output;
+        return new GenericApiResponse<LoginResponseDto>(output);
     }
 }

@@ -27,14 +27,16 @@ export class RegisterComponent implements OnInit {
   async Register(): Promise<void>{
     let isUsernameAvailable = await firstValueFrom(this.authService.IsUsernameAvailable(this.username));
 
-    if (!isUsernameAvailable) return;
+    if (!isUsernameAvailable.executedSuccessfully || !isUsernameAvailable.result) return;
 
-    let credentialOptions = await firstValueFrom(this.authService.MakeCredentialOptions(this.username));
+    let credentialOptions = await firstValueFrom(this.authService.GetCredentialOptions(this.username));
 
-    let credential = await this.MakeCredential(credentialOptions);
+    if (!credentialOptions.executedSuccessfully) return;
 
-    credentialOptions.challenge = this.convertService.CoerceToBase64Url(credentialOptions.challenge);
-    credentialOptions.user.id = this.convertService.CoerceToBase64Url(credentialOptions.user.id);
+    let credential = await this.MakeCredential(credentialOptions.result);
+
+    credentialOptions.result.challenge = this.convertService.CoerceToBase64Url(credentialOptions.result.challenge);
+    credentialOptions.result.user.id = this.convertService.CoerceToBase64Url(credentialOptions.result.user.id);
     let rawId = this.convertService.CoerceToBase64Url(credential.rawId);
     let attestationObject = this.convertService.CoerceToBase64Url(credential.response.attestationObject);
     let clientDataJson = this.convertService.CoerceToBase64Url(credential.response.clientDataJSON);
@@ -44,19 +46,17 @@ export class RegisterComponent implements OnInit {
       rawId: rawId,
       attestationObject: attestationObject,
       clientDataJSON: clientDataJson,
-      options: credentialOptions
+      options: credentialOptions.result
     }
 
     let response = await firstValueFrom(this.authService.MakeCredential(requestBody));
-
-    console.log(response);
 
     if (!response.executedSuccessfully){
       alert("Unable to register your account");
       return;
     }
 
-    this.persistentStorage.SetPersistentProperties(response);
+    this.persistentStorage.SetPersistentProperties(response.result);
     await this.route.navigateByUrl("/circle");
   }
 
