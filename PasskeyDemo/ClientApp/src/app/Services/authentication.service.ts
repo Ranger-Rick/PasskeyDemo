@@ -29,7 +29,7 @@ export class TestingAuthenticationService implements IAuthenticationService {
       return this.http.post<ITypedApiResponse<LoginResponseDto>>(this.baseUrl + "MakeCredential", makeCredentialRequestBody);
   }
 
-  GetAttestationOptions(username: string): Observable<ITypedApiResponse<any>>{
+  GetAssertionOptions(username: string): Observable<ITypedApiResponse<any>>{
     return this.http.get<ITypedApiResponse<any>>(this.baseUrl + "GetAssertionOptions?username=" + username);
   }
 

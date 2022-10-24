@@ -10,7 +10,7 @@ export interface IAuthenticationService {
 
   MakeCredential(makeCredentialRequestBody: any): Observable<ITypedApiResponse<LoginResponseDto>>;
 
-  GetAttestationOptions(username: string): Observable<ITypedApiResponse<any>>;
+  GetAssertionOptions(username: string): Observable<ITypedApiResponse<any>>;
 
   MakeAssertion(makeAssertionRequestBody: any): Observable<ITypedApiResponse<LoginResponseDto>>;
 }

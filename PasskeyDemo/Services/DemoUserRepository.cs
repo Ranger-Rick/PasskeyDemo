@@ -38,7 +38,7 @@ public class DemoUserRepository : IUserRepository, ICredentialRepository
     public async Task<User?> GetUser(string username)
     {
         var allUsers = await GetAllUsers();
-        var matchingUser = allUsers.FirstOrDefault(u => u.Username == username);
+        var matchingUser = allUsers.FirstOrDefault(u => string.Equals(u.Username, username, StringComparison.CurrentCultureIgnoreCase));
 
         return matchingUser;
     }
@@ -54,7 +54,7 @@ public class DemoUserRepository : IUserRepository, ICredentialRepository
     public async Task<bool> IsUsernameAvailable(string username)
     {
         var allUsers = await GetAllUsers();
-        var matchingUser = allUsers.FirstOrDefault(u => u.Username == username);
+        var matchingUser = allUsers.FirstOrDefault(u => string.Equals(u.Username, username, StringComparison.CurrentCultureIgnoreCase));
 
         return matchingUser is not null;
     }
@@ -71,7 +71,7 @@ public class DemoUserRepository : IUserRepository, ICredentialRepository
 
     private bool UserExists(List<User> existingUsers, User user)
     {
-        return existingUsers.Any(u => u.Username == user.Username);
+        return existingUsers.Any(u => string.Equals(u.Username, user.Username, StringComparison.CurrentCultureIgnoreCase));
     }
     
     private async Task<List<User>> GetAllUsers()

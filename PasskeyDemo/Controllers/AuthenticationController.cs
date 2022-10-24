@@ -33,9 +33,16 @@ public class AuthenticationController : ControllerBase
     [Route("/[controller]/UsernameAvailable")]
     public async Task<IApiResponse<bool>> IsUsernameAvailable(string username)
     {
-        var doesUserExist = await _userRepository.GetUser(username);
+        if (username.Any(char.IsWhiteSpace)) return new GenericApiResponse<bool>(false, "Username cannot contain spaces", false);
+        
+        var user = await _userRepository.GetUser(username);
 
-        var output = new GenericApiResponse<bool>(doesUserExist is null);
+        var successful = user is null;
+        var message = successful
+            ? "There are no users with the username you provided. You can register with this username!"
+            : $"The username {username} is already in use, please select a different username";
+
+        var output = new GenericApiResponse<bool>(successful, message, successful);
     
         return output;
     }
@@ -109,7 +116,11 @@ public class AuthenticationController : ControllerBase
     public async Task<IApiResponse<AssertionOptions>> GetAssertionOptions(string username)
     {
         var user = await _userRepository.GetUser(username);
-        if (user is null) return new GenericApiResponse<AssertionOptions>(null, "Could not find user", false);
+        if (user is null)
+        {
+            var message = "Unable to find an account with the username provided. Do you need to register first?";
+            return new GenericApiResponse<AssertionOptions>(null, message, false);
+        }
         var output = await _authentication.GetAssertionOptions(user);
         return new GenericApiResponse<AssertionOptions>(output);
     }

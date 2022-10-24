@@ -4,6 +4,7 @@ import {ConvertService} from "../Services/convert.service";
 import {firstValueFrom} from "rxjs";
 import {PersistentPropertiesService} from "../Services/persistent-properties.service";
 import {Router} from "@angular/router";
+import {IApiResponse} from "../Interfaces/IApiResponse";
 
 @Component({
   selector: 'app-register',
@@ -27,11 +28,17 @@ export class RegisterComponent implements OnInit {
   async Register(): Promise<void>{
     let isUsernameAvailable = await firstValueFrom(this.authService.IsUsernameAvailable(this.username));
 
-    if (!isUsernameAvailable.executedSuccessfully || !isUsernameAvailable.result) return;
+    if (!isUsernameAvailable.executedSuccessfully || !isUsernameAvailable.result) {
+      this.HandleError(isUsernameAvailable);
+      return;
+    }
 
     let credentialOptions = await firstValueFrom(this.authService.GetCredentialOptions(this.username));
 
-    if (!credentialOptions.executedSuccessfully) return;
+    if (!credentialOptions.executedSuccessfully) {
+      this.HandleError(credentialOptions);
+      return;
+    }
 
     let credential = await this.MakeCredential(credentialOptions.result);
 
@@ -62,7 +69,6 @@ export class RegisterComponent implements OnInit {
 
   MakeCredential(credentialOptions: any): Promise<any> {
     try {
-      console.log("Making the Credential");
 
       let enc = new TextEncoder();
       let userIdAsArrayBuffer = enc.encode(credentialOptions.user.id);
@@ -74,11 +80,13 @@ export class RegisterComponent implements OnInit {
         publicKey: credentialOptions
       });
     }
-    catch (e) {
-      console.log(e);
+    catch {
       return new Promise<any>(() => {});
     }
+  }
 
+  HandleError(response: IApiResponse) {
+    alert(response.message);
   }
 
 }

@@ -26,9 +26,15 @@ export class LoginComponent implements OnInit {
   }
 
   async Login(): Promise<void>{
-    let assertionOptions = await firstValueFrom(this.authService.GetAttestationOptions(this.username));
+    let assertionOptions = await firstValueFrom(this.authService.GetAssertionOptions(this.username));
 
-    if (!assertionOptions.executedSuccessfully) return;
+    if (!assertionOptions.executedSuccessfully) {
+      let intent = confirm(assertionOptions.message);
+      if (intent) {
+        await this.route.navigateByUrl("/register");
+      }
+      return
+    }
 
     let newAssertionOptions = assertionOptions.result;
 
@@ -41,9 +47,15 @@ export class LoginComponent implements OnInit {
       listItem.id = Uint8Array.from(atob(fixedId), c => c.charCodeAt(0));
     });
 
-    let credential = await navigator.credentials.get({ publicKey: newAssertionOptions });
+    try {
+      let credential = await navigator.credentials.get({ publicKey: newAssertionOptions });
 
-    await this.VerifyAssertionWithServer(credential, assertionOptions.result);
+      await this.VerifyAssertionWithServer(credential, assertionOptions.result);
+    }
+    catch {
+      //An error is thrown if the user cancels out of the navigator.credentials.get method. This is okay. Swallow this error here
+      this.username = "";
+    }
   }
 
   async VerifyAssertionWithServer(assertedCredential: any, options: any){
@@ -75,7 +87,7 @@ export class LoginComponent implements OnInit {
     let response = await firstValueFrom(this.authService.MakeAssertion(requestBody));
 
     if (!response.executedSuccessfully) {
-      alert("Unable to verify your Passkey");
+      alert(response.message);
       return;
     }
 
