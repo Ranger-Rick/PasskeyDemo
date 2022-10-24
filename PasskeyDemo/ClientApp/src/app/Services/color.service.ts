@@ -4,6 +4,7 @@ import {Observable} from "rxjs";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {BrowserStorageService} from "./browser-storage.service";
 import {Constants} from "../Constants";
+import {IApiResponse, ITypedApiResponse} from "../Interfaces/IApiResponse";
 
 @Injectable({
   providedIn: 'root'
@@ -20,23 +21,22 @@ export class ColorService implements IColorService{
     this.baseUrl = baseUrl + "Color/"
   }
 
-  GetColor(userId: string): Observable<string> {
+  GetColor(userId: string): Observable<ITypedApiResponse<string>> {
     let headers = new HttpHeaders();
     headers = headers.set("Authorization", "Bearer " + this.storage.GetValue<string>(Constants.Token));
 
     const requestOptions: Object = {
-      headers: headers,
-      responseType: 'text'
+      headers: headers
     }
 
-    return this.http.get<string>(this.baseUrl + "GetColor?userId=" + userId, requestOptions);
+    return this.http.get<ITypedApiResponse<string>>(this.baseUrl + "GetColor?userId=" + userId, requestOptions);
   }
 
-  UpdateColor(userId: string, color: string): Observable<void> {
+  UpdateColor(userId: string, color: string): Observable<IApiResponse> {
     let headers = new HttpHeaders();
     headers = headers.set("Authorization", "Bearer " + this.storage.GetValue<string>(Constants.Token))
 
-    return this.http.post<void>(
+    return this.http.post<IApiResponse>(
       this.baseUrl + `UpdateColor?userId=${userId}&color=${color}`,
       undefined,
       {

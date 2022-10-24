@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import {ColorService} from "../Services/color.service";
 import {BrowserStorageService} from "../Services/browser-storage.service";
 import {Constants} from "../Constants";
-import {colors} from "@angular/cli/utilities/color";
 import {firstValueFrom, Observable} from "rxjs";
 
 @Component({
@@ -20,8 +19,15 @@ export class CircleColorComponent implements OnInit {
 
   ngOnInit(): void {
     let userId = this.storage.GetValue<string>(Constants.UserId);
-    this.colorService.GetColor(userId).subscribe(color => {
-      console.log(color);
+    this.colorService.GetColor(userId).subscribe(response => {
+
+      if (!response.executedSuccessfully) {
+        //Handle error
+        return;
+      }
+
+      let color = response.result;
+
       if (color == undefined){
         this.color = "#621940"
         return;
@@ -31,13 +37,15 @@ export class CircleColorComponent implements OnInit {
   }
 
   async OnColorChanged(): Promise<void> {
-    console.log(this.color);
-
     let userId = this.storage.GetValue<string>(Constants.UserId);
 
     let colorSubstring = this.color.substring(1);
 
-    await firstValueFrom(this.colorService.UpdateColor(userId, colorSubstring));
+    let response = await firstValueFrom(this.colorService.UpdateColor(userId, colorSubstring));
+
+    if (!response.executedSuccessfully){
+      alert(response.message);
+    }
 
   }
 }
