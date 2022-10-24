@@ -71,7 +71,7 @@ public class WebAuthentication : IWebAuthentication
         var response = await _fido2.MakeAssertionAsync(assertionResponse, assertionOptions, credential.PublicKey, storedCounter, callback);
 
         //Documentation says we need to update the Signature Counter here. I'm not sure why though
-        //TODO: Update the SignatureCounter
+        await _credentialRepository.UpdateSignatureCount(credentialId);
         
         return response;
     }

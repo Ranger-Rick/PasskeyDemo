@@ -69,6 +69,17 @@ public class DemoUserRepository : IUserRepository, ICredentialRepository
         return credential.Credential;
     }
 
+    public async Task UpdateSignatureCount(byte[] credentialId)
+    {
+        var users = await GetAllUsers();
+        var userToUpdate = users.FirstOrDefault(c => c.Credential.Descriptor.Id.AsSpan().SequenceEqual(credentialId));
+        if (userToUpdate is null) return;
+
+        userToUpdate.Credential.SignatureCounter ++;
+
+        await UpdateUser(userToUpdate);
+    }
+
     private bool UserExists(List<User> existingUsers, User user)
     {
         return existingUsers.Any(u => string.Equals(u.Username, user.Username, StringComparison.CurrentCultureIgnoreCase));
