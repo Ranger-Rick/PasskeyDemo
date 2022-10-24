@@ -12,12 +12,14 @@ import {firstValueFrom, Observable} from "rxjs";
 export class CircleColorComponent implements OnInit {
 
   color: string;
+  username: string;
 
   constructor(
     private storage: BrowserStorageService,
     private colorService: ColorService) { }
 
   ngOnInit(): void {
+    this.username = this.storage.GetValue(Constants.Username);
     let userId = this.storage.GetValue<string>(Constants.UserId);
     this.colorService.GetColor(userId).subscribe(response => {
 
