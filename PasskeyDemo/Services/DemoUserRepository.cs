@@ -5,7 +5,7 @@ using PasskeyDemo.Models;
 
 namespace PasskeyDemo.Services;
 
-public class DemoUserRepository : IUserRepository, ICredentialRepository
+public class DemoUserRepository : IUserRepository, ICredentialRepository, IReadUserCredential
 {
     private const string FileName = "TempDatabase.json";
 
@@ -47,6 +47,14 @@ public class DemoUserRepository : IUserRepository, ICredentialRepository
     {
         var allUsers = await GetAllUsers();
         var matchingUser = allUsers.FirstOrDefault(u => u.Id.AsSpan().SequenceEqual(userId));
+
+        return matchingUser;
+    }
+    
+    public async Task<User?> GetUserByCredentialId(byte[] credentialId)
+    {
+        var allUsers = await GetAllUsers();
+        var matchingUser = allUsers.FirstOrDefault(u => u.Credential.Descriptor.Id.AsSpan().SequenceEqual(credentialId));
 
         return matchingUser;
     }
@@ -98,6 +106,7 @@ public class DemoUserRepository : IUserRepository, ICredentialRepository
             return new List<User>();
         }
     }
+
 
     
 }

@@ -83,6 +83,7 @@ public class Program
     {
         services.AddTransient<IUserRepository, DemoUserRepository>();
         services.AddTransient<ICredentialRepository, DemoUserRepository>();
+        services.AddTransient<IReadUserCredential, DemoUserRepository>();
         services.AddTransient<ITokenGenerator, JwtSecurityGenerator>();
         services.AddTransient<IWebAuthentication, WebAuthentication>();
         services.AddTransient<IUserRegistration, DefaultUserRegistration>();

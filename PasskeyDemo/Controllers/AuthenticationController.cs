@@ -15,18 +15,21 @@ public class AuthenticationController : ControllerBase
     private readonly ITokenGenerator _tokenGenerator;
     private readonly IWebAuthentication _authentication;
     private readonly IUserRepository _userRepository;
+    private readonly IReadUserCredential _userCredential;
     private readonly IUserRegistration _userRegistration;
 
     public AuthenticationController(
         IUserRepository userRepository, 
         ITokenGenerator tokenGenerator, 
         IWebAuthentication authentication, 
-        IUserRegistration userRegistration)
+        IUserRegistration userRegistration, 
+        IReadUserCredential userCredential)
     {
         _userRepository = userRepository;
         _tokenGenerator = tokenGenerator;
         _authentication = authentication;
         _userRegistration = userRegistration;
+        _userCredential = userCredential;
     }
 
     [HttpGet]
@@ -129,6 +132,14 @@ public class AuthenticationController : ControllerBase
     [Route("/[controller]/MakeAssertion")]
     public async Task<IApiResponse<LoginResponseDto>> MakeAssertion([FromBody] MakeAssertionDto assertionDto)
     {
+        var userHandle = assertionDto.UserHandle;
+        if (userHandle.Length <= 0)
+        {
+            var userByCredential = await _userCredential.GetUserByCredentialId(assertionDto.Id);
+            if (userByCredential is null) return new GenericApiResponse<LoginResponseDto>(null, "Unable to find user");
+            userHandle = userByCredential.Id;
+        }
+        
         var assertionRawResponse = new AuthenticatorAssertionRawResponse
         {
             Id = assertionDto.Id,
@@ -139,7 +150,7 @@ public class AuthenticationController : ControllerBase
                 Signature = assertionDto.Signature,
                 AuthenticatorData = assertionDto.AuthenticatorData,
                 ClientDataJson = assertionDto.ClientDataJson,
-                UserHandle = assertionDto.UserHandle
+                UserHandle = userHandle
             }
         };
 
@@ -150,7 +161,7 @@ public class AuthenticationController : ControllerBase
             return new GenericApiResponse<LoginResponseDto>(null, "An error occurred when making the assertion", false);
         }
         
-        var user = await _userRepository.GetUser(assertionDto.UserHandle);
+        var user = await _userRepository.GetUser(userHandle);
         if (user is null) return new GenericApiResponse<LoginResponseDto>(null, "Unable to get the user to generate a token", false);
         var token = _tokenGenerator.GenerateToken(user);
 
